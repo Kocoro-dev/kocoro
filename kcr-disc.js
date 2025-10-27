@@ -1,6 +1,6 @@
 (function(){
 
-  var ENDPOINT_URL = "https://kcr-notify.hola-623.workers.dev/?t=kcr_1o9d82jASDz901";
+  var ENDPOINT_URL = "https://kcr-notify.hola-623.workers.dev/?t=kcr_ok_123";
 
   var THROTTLE_MS = 3600 * 1000; // 1 hora
 
@@ -45,7 +45,6 @@
   function send(payload){
     try {
       var body = JSON.stringify(payload);
-      
         fetch(ENDPOINT_URL, {
           method: "POST",
           headers: {"Content-Type":"application/json"},
@@ -84,4 +83,5 @@
     send(buildPayload(p));
   } catch(e){}
 })();
+
 
