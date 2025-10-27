@@ -26,7 +26,7 @@
     try { return JSON.parse(str); } catch(e){ return fallback; }
   }
 
-  // ===== 1) Capturar UTMs (o dejar null si no vienen) =====
+  // ===== 
   var utm = {
     utm_source:   getParam('utm_source'),
     utm_medium:   getParam('utm_medium'),
@@ -35,14 +35,14 @@
     utm_term:     getParam('utm_term')
   };
 
-  // ===== 2) Datos “localización” sin PII (idioma/país estimado/zonahoraria) =====
+  // ===== 
   var primaryLang = (navigator.languages && navigator.languages[0]) || navigator.language || '';
   var parts = primaryLang.split('-'); // ej: es-ES
   var locale = primaryLang.toLowerCase() || null;
   var regionGuess = (parts[1] || '').toUpperCase() || null; // “ES”, “US”, etc.
   var timezone = (Intl && Intl.DateTimeFormat) ? Intl.DateTimeFormat().resolvedOptions().timeZone : null;
 
-  // ===== 3) Construir/actualizar payload en cookie =====
+  // ===== 
   var nowISO = new Date().toISOString();
   var existing = parseJSONSafe(getCookie(COOKIE_NAME), null);
 
@@ -69,11 +69,13 @@
     timezone: timezone
   };
 
-  // guarda first_touch solo si aún no existe y hay algún UTM o landing
+    // ===== 
+
   if (!payload.first_touch && (utm.utm_source || utm.utm_medium || utm.utm_campaign || utm.utm_content || utm.utm_term)) {
     payload.first_touch = touch;
   }
-  // last_touch siempre se actualiza si hay UTMs; si no hay, al menos refresca landing/referrer/idioma/tz
+  // ===== 
+
   if (utm.utm_source || utm.utm_medium || utm.utm_campaign || utm.utm_content || utm.utm_term) {
     payload.last_touch = touch;
   } else {
@@ -86,35 +88,30 @@
     });
   }
 
-  // Persistir cookie (primera escritura)
   setCookie(COOKIE_NAME, JSON.stringify(payload), COOKIE_DAYS);
 
-  // ===== 4) Localización opcional por Geolocalización (solo si el usuario concede permiso) =====
-  // *No pedimos reverse geocoding ni guardamos precisión fina.*
+
   function saveWithGeo(pos) {
     try {
       var p = parseJSONSafe(getCookie(COOKIE_NAME), payload) || payload;
       var coords = pos && pos.coords ? pos.coords : null;
       if (coords) {
-        // redondear ~1 decimal para no guardar precisión fina
         p.geo = {
-          lat: Math.round(coords.latitude * 10) / 10,
-          lon: Math.round(coords.longitude * 10) / 10,
-          acc_m: Math.round((coords.accuracy || 0))
+          lat: coords.latitude,
+          lon: coords.longitude,
+          acc_m: (coords.accuracy || 0)
         };
         setCookie(COOKIE_NAME, JSON.stringify(p), COOKIE_DAYS);
       }
     } catch(e){}
   }
   if ('geolocation' in navigator) {
-    // si ya está concedido, lo añadimos en segundo plano sin mostrar prompt;
-    // si está "prompt"/"denied", no hacemos nada (evitamos fricción).
     if (navigator.permissions && navigator.permissions.query) {
       navigator.permissions.query({name: 'geolocation'}).then(function (res) {
         if (res.state === 'granted') {
           navigator.geolocation.getCurrentPosition(saveWithGeo, function(){}, {timeout: 3000, enableHighAccuracy: false, maximumAge: 600000});
         }
-      }).catch(function(){ /* permiso API no disponible, ignorar */ });
+      }).catch(function(){  });
     }
   }
 })();
