@@ -45,10 +45,7 @@
   function send(payload){
     try {
       var body = JSON.stringify(payload);
-      var blob = new Blob([body], {type:"application/json"});
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(ENDPOINT_URL, blob);
-      } else {
+      
         fetch(ENDPOINT_URL, {
           method: "POST",
           headers: {"Content-Type":"application/json"},
@@ -57,7 +54,6 @@
           mode: "cors",
           credentials: "omit"
         }).catch(function(){});
-      }
     } catch(e){}
   }
 
@@ -88,3 +84,4 @@
     send(buildPayload(p));
   } catch(e){}
 })();
+
